@@ -7,7 +7,7 @@ FactoryBot.define do
     cuisine { Faker::Food.ethnic_category }
     category { Faker::Food.ethnic_category }
     author { Faker::Name.name }
-    image { 'image.jpg' }
-    row_ingredients { [Faker::Food.fruits ] }
+    image { "image.jpg" }
+    row_ingredients { [Faker::Food.fruits] }
   end
 end
