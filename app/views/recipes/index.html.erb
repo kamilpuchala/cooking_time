@@ -1,0 +1,51 @@
+<h1>Recipe Search</h1>
+
+<%= form_with url: recipes_path, method: :get, local: true, id: 'ingredient-search-form' do |f| %>
+  <% params[:ingredients].each do |ingredient| %>
+    <div>
+      <%= text_field_tag 'ingredients[]', ingredient, placeholder: 'Enter an ingredient' %>
+      <button type="button"  onclick="removeIngredientField(this)">Remove</button>
+    </div>
+  <% end %>
+  <div id="ingredients-fields">
+    <div>
+      <%= text_field_tag 'ingredients[]', '', placeholder: 'Enter an ingredient' %>
+      <button type="button"onclick="removeIngredientField(this)">Remove</button>
+    </div>
+  </div>
+
+  <button type="button" id="add-ingredient" onclick="addIngredientField()">+ Add Ingredient</button>
+
+  <div>
+    <%= submit_tag 'Search Recipes' %>
+  </div>
+<% end %>
+
+<% if @recipes.present? %>
+  <h2>Matching Recipes</h2>
+  <ul>
+    <% @recipes.each do |recipe| %>
+      <li>
+        <strong><%= recipe.title %></strong> %>
+        <p>Ingredients: <%= recipe.row_ingredients %></p>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No matching recipes found.</p>
+<% end %>
+
+<script>
+    function addIngredientField() {
+        var fieldHTML = `
+      <div>
+        <input type="text" name="ingredients[]" placeholder="Enter an ingredient" />
+        <button type="button" onclick="removeIngredientField(this)">Remove</button>
+      </div>`;
+        document.getElementById('ingredients-fields').insertAdjacentHTML('beforeend', fieldHTML);
+    }
+
+    function removeIngredientField(button) {
+        button.closest('.ingredient-field').remove();
+    }
+</script>

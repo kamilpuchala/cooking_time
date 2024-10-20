@@ -10,11 +10,10 @@ module Parsers
 
       def call
         cleaned_ingredient = ingredient_string.downcase.delete(",")
-        cleaned_ingredient = remove_quantities(cleaned_ingredient)
+        cleaned_ingredient = parser_service.new(cleaned_ingredient).call
         cleaned_ingredient = remove_descriptions(cleaned_ingredient)
-        cleaned_ingredient = cleaned_ingredient.strip
-
-        (cleaned_ingredient.split.length == 1) ? cleaned_ingredient : parser_service.new(cleaned_ingredient).call
+        
+        singularize(cleaned_ingredient)
       end
 
       private
@@ -22,9 +21,9 @@ module Parsers
       def remove_descriptions(ingredient)
         ingredient.gsub(IngredientDictionary::DESCRIPTIONS_REGEX, "")
       end
-
-      def remove_quantities(ingredient)
-        ingredient.gsub(IngredientDictionary::UNITS_REGEX, "")
+      
+      def singularize(ingredient)
+        ingredient.split.map(&:singularize).uniq.join(' ')
       end
     end
   end
