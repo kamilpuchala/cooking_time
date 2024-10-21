@@ -1,28 +1,27 @@
 module Importers
   class RecipeJsonImporter
     attr_reader :file_path, :parser_service
-
+  
     def initialize(file_path, parser_service: Parsers::Ingredients::IngredientParser)
       @file_path = file_path
       @parser_service = parser_service
     end
 
     def call
-      require "json"
-      file = File.read(file_path)
-      recipes_data = JSON.parse(file)
-
-      recipes_data.each_with_index do |recipe_data, index|
+      recipes_data = JsonReader.new(file_path).call
+      
+      recipes_data.each do |recipe_data|
         ActiveRecord::Base.transaction do
-          recipe = create_recipe(recipe_data)
-          process_ingredients(recipe, recipe_data["ingredients"])
+          ingredients = process_ingredients(recipe_data["ingredients"])
+          recipe = create_recipe!(recipe_data: recipe_data, max_score: ingredients.sum(&:score))
+          recipe.ingredients << ingredients
         end
       end
     end
 
     private
 
-    def create_recipe(recipe_data)
+    def create_recipe!(recipe_data:, max_score:)
       Recipe.create!(
         title: recipe_data["title"],
         cook_time: recipe_data["cook_time"],
@@ -32,18 +31,18 @@ module Importers
         category: recipe_data["category"],
         author: recipe_data["author"],
         image: recipe_data["image"],
-        row_ingredients: recipe_data["ingredients"]
+        row_ingredients: recipe_data["ingredients"],
+        max_score: max_score
       )
     end
 
-    def process_ingredients(recipe, ingredients_data)
-      ingredients_data.each do |ingredient_data|
-        ingredient_name = parse_ingredient(ingredient_data)
-        next if ingredient_name.blank?
-
-        ingredient = Ingredient.find_or_create_by(name: ingredient_name)
-        RecipeIngredient.create!(recipe: recipe, ingredient: ingredient)
-      end
+    def process_ingredients(ingredients_data)
+      ingredients_data.map do |ingredient_data|
+        parsed_ingredient = parse_ingredient(ingredient_data)
+        next if parsed_ingredient[:name].blank?
+        
+        Ingredient.where(parsed_ingredient).first_or_create
+      end.compact
     end
 
     def parse_ingredient(ingredient_data)
@@ -52,5 +51,7 @@ module Importers
       Rails.logger.error("RecipeImporter Error: Could not parse ingredient '#{ingredient_data}'. Error: #{e.message}")
       ingredient_data
     end
+    
+   
   end
 end

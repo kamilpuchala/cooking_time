@@ -1,21 +1,23 @@
 <h1>Recipe Search</h1>
 
 <%= form_with url: recipes_path, method: :get, local: true, id: 'ingredient-search-form' do |f| %>
-  <% params[:ingredients].each do |ingredient| %>
-    <div>
-      <%= text_field_tag 'ingredients[]', ingredient, placeholder: 'Enter an ingredient' %>
-      <button type="button"  onclick="removeIngredientField(this)">Remove</button>
-    </div>
-  <% end %>
   <div id="ingredients-fields">
-    <div>
-      <%= text_field_tag 'ingredients[]', '', placeholder: 'Enter an ingredient' %>
-      <button type="button"onclick="removeIngredientField(this)">Remove</button>
-    </div>
+    <% if params[:ingredients].present? %>
+      <% params[:ingredients].each do |ingredient| %>
+        <div class="ingredient-field">
+          <%= text_field_tag 'ingredients[]', ingredient %>
+          <button type="button"  onclick="removeIngredientField(this)">Remove</button>
+        </div>
+      <% end %>
+    <% end %>
   </div>
-
   <button type="button" id="add-ingredient" onclick="addIngredientField()">+ Add Ingredient</button>
-
+  <div>
+    <label for="dietary-filter">Dietary Restrictions</label>
+    <%= select_tag 'dietary_filters[]',
+                   options_for_select([['None', 'none'],['Vege (Exclude Meat)', 'meat'], ['Lactose Free (Exclude Dairy)', 'dairy']], selected: params[:dietary_filters]),
+                   multiple: true, size: 3 %>
+  </div>
   <div>
     <%= submit_tag 'Search Recipes' %>
   </div>
@@ -26,7 +28,10 @@
   <ul>
     <% @recipes.each do |recipe| %>
       <li>
-        <strong><%= recipe.title %></strong> %>
+        <strong><%= recipe.title %></strong>
+        <% if recipe.respond_to?(:matching_percentage) %>
+          <h3><%= recipe.matching_percentage %> %</h3>
+        <% end %>
         <p>Ingredients: <%= recipe.row_ingredients %></p>
       </li>
     <% end %>
@@ -38,7 +43,7 @@
 <script>
     function addIngredientField() {
         var fieldHTML = `
-      <div>
+      <div id="ingredients-fields">
         <input type="text" name="ingredients[]" placeholder="Enter an ingredient" />
         <button type="button" onclick="removeIngredientField(this)">Remove</button>
       </div>`;

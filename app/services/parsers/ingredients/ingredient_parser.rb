@@ -13,7 +13,10 @@ module Parsers
         cleaned_ingredient = parser_service.new(cleaned_ingredient).call
         cleaned_ingredient = remove_descriptions(cleaned_ingredient)
         
-        singularize(cleaned_ingredient)
+        cleaned_ingredient = singularize(cleaned_ingredient)
+        category = find_category(cleaned_ingredient)
+        
+        { name: cleaned_ingredient, category: category, score: Ingredient::INGREDIENT_CATEGORY_WITH_SCORE[category] }
       end
 
       private
@@ -24,6 +27,15 @@ module Parsers
       
       def singularize(ingredient)
         ingredient.split.map(&:singularize).uniq.join(' ')
+      end
+      
+      def find_category(ingredient_name)
+        IngredientDictionary::INGREDIENT_CATEGORIES.each do |category, ingredients|
+          ingredients.each do |ingredient|
+            return category if ingredient_name.include?(ingredient)
+          end
+        end
+        "unknown"
       end
     end
   end
