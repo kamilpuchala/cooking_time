@@ -1,0 +1,19 @@
+<turbo-frame id="recipe-results" class="min-h-[200px] py-4">
+  <% if @recipes.present? %>
+    <h2 class="hidden md:block text-2xl font-bold mb-4 m-2">Matching Recipes</h2>
+    <ul class="space-y-2">
+      <% @recipes.each do |recipe| %>
+        <li class="border p-3 rounded-lg shadow-md mb-2">
+          <strong class="text-lg m-2"><%= recipe.title %></strong>
+          <% if recipe.respond_to?(:matching_percentage) %>
+            <strong><p class="text-sm text-green-600 m-2"><%= recipe.matching_percentage %>% match</p></strong>
+          <% end %>
+          <p class="m-2"><strong>Ingredients: </strong><%= recipe.row_ingredients.first(4).join(", ") %>...</p>
+          <%= link_to 'Show More',recipe_path(recipe, ingredients: params[:ingredients], dietary_filters: params[:dietary_filters]), data: { turbo: false }, class: 'show-more-button bg-gray-700 text-white px-4 py-2 rounded mt-4 p-10 m-2' %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-xl text-gray-500">No matching recipes found.</p>
+  <% end %>
+</turbo-frame>

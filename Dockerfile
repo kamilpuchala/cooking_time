@@ -62,29 +62,22 @@
 #CMD ["./bin/rails", "server"]
 FROM ruby:3.2.2
 
-# Install dependencies
 RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs postgresql-client
 
-# Install Yarn (for managing JavaScript dependencies)
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install -y yarn
 
-# Set the working directory
 WORKDIR /cooking_time
 
-# Copy the Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
+CMD ["sh", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b '0.0.0.0'"]
 
-# Install gems
 RUN gem install bundler
 RUN bundle install
 
-# Copy the rest of the application code
 COPY . /cooking_app
 
-# Expose port 3000
 EXPOSE 3000
 
-# Start the Rails server
 CMD ["rails", "server", "-b", "0.0.0.0"]

@@ -1,56 +1,45 @@
-<h1>Recipe Search</h1>
-
-<%= form_with url: recipes_path, method: :get, local: true, id: 'ingredient-search-form' do |f| %>
-  <div id="ingredients-fields">
-    <% if params[:ingredients].present? %>
-      <% params[:ingredients].each do |ingredient| %>
-        <div class="ingredient-field">
-          <%= text_field_tag 'ingredients[]', ingredient %>
-          <button type="button"  onclick="removeIngredientField(this)">Remove</button>
-        </div>
-      <% end %>
-    <% end %>
-  </div>
-  <button type="button" id="add-ingredient" onclick="addIngredientField()">+ Add Ingredient</button>
-  <div>
-    <label for="dietary-filter">Dietary Restrictions</label>
-    <%= select_tag 'dietary_filters[]',
-                   options_for_select([['None', 'none'],['Vege (Exclude Meat)', 'meat'], ['Lactose Free (Exclude Dairy)', 'dairy']], selected: params[:dietary_filters]),
-                   multiple: true, size: 3 %>
-  </div>
-  <div>
-    <%= submit_tag 'Search Recipes' %>
-  </div>
-<% end %>
-
-<% if @recipes.present? %>
-  <h2>Matching Recipes</h2>
-  <ul>
-    <% @recipes.each do |recipe| %>
-      <li>
-        <strong><%= recipe.title %></strong>
-        <% if recipe.respond_to?(:matching_percentage) %>
-          <h3><%= recipe.matching_percentage %> %</h3>
+<div class="flex flex-wrap md:flex-nowrap md:space-x-8">
+  <section class="w-full md:w-1/3 mb-8 md:mb-0">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold mb-4">Recipe Search</h1>
+    </div>
+    <%= form_with url: recipes_path, method: :get, data: { controller: 'ingredient-form', turbo_frame: 'recipe-results' } do %>
+      <div id="ingredients-fields" data-ingredient-form-target="ingredientsFields">
+        <% if params[:ingredients].present? %>
+          <% params[:ingredients].each do |ingredient| %>
+            <div class="ingredient-field flex items-center mb-2">
+              <%= text_field_tag 'ingredients[]', ingredient, placeholder: 'Enter an ingredient', class: 'border p-1 flex-grow w-full' %>
+              <button type="button" data-action="click->ingredient-form#removeIngredientField" class="ml-2 text-red-500">Remove</button>
+            </div>
+          <% end %>
+        <% else %>
+            <button type="button" data-action="click->ingredient-form#removeIngredientField" class="ml-2 text-red-500">Remove</button>
+          </div>
         <% end %>
-        <p>Ingredients: <%= recipe.row_ingredients %></p>
-      </li>
+      </div>
+      <button type="button" data-action="click->ingredient-form#addIngredientField" class="w-full bg-blue-500 text-white px-4 py-2 rounded mb-4">+ Add Ingredient</button>
+
+      <div class="mb-4">
+        <label for="dietary-filter" class="block font-medium mb-2">Dietary Restrictions</label>
+        <div class="flex flex-wrap gap-2">
+          <% [['Vege (Exclude Meat)', 'meat'], ['Lactose Free (Exclude Dairy)', 'dairy']].each do |label, value| %>
+            <label class="inline-flex items-center">
+              <input type="checkbox" name="dietary_filters[]" value="<%= value %>" <%= params[:dietary_filters]&.include?(value) ? 'checked' : '' %> class="form-checkbox h-5 w-5 text-green-600">
+              <span class="ml-2 text-gray-700"><%= label %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+
+
+      <div>
+        <%= submit_tag 'Search Recipes', class: 'w-full bg-green-500 text-white px-4 py-2 rounded' %>
+      </div>
     <% end %>
-  </ul>
-<% else %>
-  <p>No matching recipes found.</p>
-<% end %>
+  </section>
 
-<script>
-    function addIngredientField() {
-        var fieldHTML = `
-      <div id="ingredients-fields">
-        <input type="text" name="ingredients[]" placeholder="Enter an ingredient" />
-        <button type="button" onclick="removeIngredientField(this)">Remove</button>
-      </div>`;
-        document.getElementById('ingredients-fields').insertAdjacentHTML('beforeend', fieldHTML);
-    }
-
-    function removeIngredientField(button) {
-        button.closest('.ingredient-field').remove();
-    }
-</script>
+  <section class="w-full md:w-2/3">
+    <%= render partial: 'recipes/recipes_list', locals: { recipes: @recipes } %>
+  </section>
+</div>
