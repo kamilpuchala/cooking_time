@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@media (min-width: 768px) {
+    .flex-wrap {
+        padding-right: 1rem;
+    }
+    section {
+        padding: 1rem;
+    }
+}
+
+.ingredient-field button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.space-y-2 > * + * {
+    margin-top: 0.5rem;
+}

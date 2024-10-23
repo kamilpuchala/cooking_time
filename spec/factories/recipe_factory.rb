@@ -9,5 +9,6 @@ FactoryBot.define do
     author { Faker::Name.name }
     image { "image.jpg" }
     row_ingredients { [Faker::Food.fruits] }
+    max_score { 10 }
   end
 end
