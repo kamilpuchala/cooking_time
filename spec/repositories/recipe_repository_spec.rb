@@ -2,10 +2,10 @@ require "rails_helper"
 
 RSpec.describe RecipeRepository, type: :model do
   let(:repository) { RecipeRepository.new }
-  let!(:ingredient_1) { create(:ingredient, name: "tomato", score: 4) }
-  let!(:ingredient_2) { create(:ingredient, name: "basil", score: 1) }
-  let!(:ingredient_3) { create(:ingredient, name: "cheese", score: 8, category: "dairy") }
-  let!(:ingredient_4) { create(:ingredient, name: "chicken", score: 6, category: "meat") }
+  let!(:ingredient_1) { create(:ingredient, name: "tomato", score: 6, category: "vegetable") }
+  let!(:ingredient_2) { create(:ingredient, name: "basil", score: 1, category: "condiment") }
+  let!(:ingredient_3) { create(:ingredient, name: "cheese", score: 4, category: "dairy") }
+  let!(:ingredient_4) { create(:ingredient, name: "chicken", score: 8, category: "meat") }
 
   let!(:recipe_1) do
     create(:recipe,
@@ -44,12 +44,13 @@ RSpec.describe RecipeRepository, type: :model do
         expect(results.first.read_attribute("matching_percentage").to_f).to eq(100.0)
       end
 
-      it "returns recipes with matching ingredients ordered by matching percentage" do
-        results = repository.search_by_ingredients(input_ingredients: ["tomato", "basil"])
+      it "ignores blank entries and applies filtering based on valid ingredients" do
+        results = repository.search_by_ingredients(input_ingredients: ["", "tomato"])
 
         expect(results.length).to eq(2)
-        expect(results.first.id).to eq(recipe_1.id)
-        expect(results.first.read_attribute("matching_percentage").to_f).to eq(100.0)
+        expect(results).to include(recipe_1, recipe_2)
+        expect(results.first.read_attribute("matching_percentage").to_f).to eq(85.71)
+        expect(results.second.read_attribute("matching_percentage").to_f).to eq(60.0)
       end
     end
 
@@ -81,6 +82,26 @@ RSpec.describe RecipeRepository, type: :model do
         results = repository.search_by_ingredients(input_ingredients: ["basil"])
 
         expect(results).to be_empty
+      end
+    end
+
+    context "when input ingredients are empty or blank" do
+      it "returns random recipes when multiple empty ingredients are provided" do
+        results = repository.search_by_ingredients(input_ingredients: ["", ""], dietary_filters: ["dairy"])
+
+        expect(results.length).to eq(1)
+        expect(results).to include(recipe_1)
+        expect(results.first.read_attribute("matching_percentage")).to be_nil
+      end
+    end
+
+    context "when both input ingredients and dietary filters are empty" do
+      it "returns recipes in random order without any filtering" do
+        results = repository.search_by_ingredients(input_ingredients: [""], dietary_filters: [])
+
+        expect(results.length).to eq(3)
+        expect(results).to include(recipe_1, recipe_2, recipe_3)
+        expect(results.first.read_attribute("matching_percentage")).to be_nil
       end
     end
   end
