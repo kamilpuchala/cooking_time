@@ -11,6 +11,7 @@ class Ingredient < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
   validates :category, presence: true, inclusion: {in: INGREDIENT_CATEGORY_WITH_SCORE.keys}
+  validate :score_must_match_category
 
   has_many :recipe_ingredients, dependent: :destroy
   has_many :recipes, through: :recipe_ingredients
@@ -24,4 +25,12 @@ class Ingredient < ApplicationRecord
       trigram: {threshold: 0.9}
     },
     ranked_by: ":trigram"
+
+  private
+
+  def score_must_match_category
+    return if INGREDIENT_CATEGORY_WITH_SCORE[category] == score
+
+    errors.add(:score, "must match category")
+  end
 end

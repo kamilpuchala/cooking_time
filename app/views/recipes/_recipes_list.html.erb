@@ -1,6 +1,6 @@
 <turbo-frame id="recipe-results" class="min-h-[200px] py-4">
   <% if @recipes.present? %>
-    <h2 class="hidden md:block text-2xl font-bold mb-4 m-2">Matching Recipes</h2>
+    <h2 class="hidden md:block text-2xl font-bold mb-2 m-2">Matching Recipes</h2>
     <ul class="space-y-2">
       <% @recipes.each do |recipe| %>
         <li class="border p-3 rounded-lg shadow-md mb-2">

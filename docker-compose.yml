@@ -21,7 +21,9 @@ services:
       - '5434:5432'
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-local
     command: bundle exec rails server -p 3000 -b '0.0.0.0'
     volumes:
       - .:/cooking_time
